@@ -9,5 +9,5 @@ config:
   numeris-book:environment: prod
   numeris-book:project: numeris
   numeris-book:rds_allocated_storage: "20"
-  numeris-book:rds_instance_class: db.t3.micro
+  numeris-book:rds_instance_class: db.t2.2xlarge
 encryptionsalt: v1:LM1+oypx35U=:v1:IfADTGFXdodN0ENk:3wqlz24BrCFTXEdweSbD5wfuyHvMTg==
