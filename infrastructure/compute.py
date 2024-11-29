@@ -18,17 +18,13 @@ class ComputeStack:
         self.alb = self.create_application_load_balancer()
         self.elasticsearch_tg = self.create_target_group("elasticsearch", 9200)
         self.logstash_tg = self.create_target_group("logstash", 5044)
-        self.kibana_tg = self.create_target_group("kibana", 5601)        
-        self.listener = self.create_listener()
+        self.kibana_tg = self.create_target_group("kibana", 5601) 
+        self.listener = self.create_listener()      
+        self.elasticsearch_listener_rule = self.create_listener_rule(self.elasticsearch_tg, "elasticsearch",10)
+        self.logstash_listener_rule = self.create_listener_rule(self.logstash_tg, "logstash",20)
+        self.Kibana_listener_rule = self.create_listener_rule(self.kibana_tg,"kibana",30)
 
-        self.listener_rules= self.create_listener_rules()
-        
-        # Create ECS task definition and service
-        # self.task_definition = self.create_task_definition()
-        # self.ecs_service = self.create_ecs_service()
-        
-        # Create Auto Scaling
-        # self.create_auto_scaling()
+       
 
     def create_ecs_cluster(self):
         try:
@@ -68,7 +64,7 @@ class ComputeStack:
                 port=port,
                 protocol=protocol,
                 vpc_id=self.network.vpc.id,
-                target_type="ip",  # ECS Fargate uses IP as targets
+                target_type="ip", 
                 health_check={
                     "enabled": True,
                     "healthy_threshold": 2,
@@ -99,51 +95,50 @@ class ComputeStack:
                 protocol="HTTP",
                 # ssl_policy="ELBSecurityPolicy-2016-08",
                 # certificate_arn=self.security.ssl_certificate.arn,
+                tags=self.common_tags,
                 default_actions=[
-                    {"type": "forward", "target_group_arn": self.kibana_tg.arn},  # Default points to Kibana
+                    {
+                        "type": "fixed-response",  # Default action if no rules match
+                        "fixed_response": {
+                            "statusCode": "404",
+                            "contentType": "text/plain",
+                            "messageBody": "Not Found",
+                        },
+                    }
                 ],
-                tags=self.common_tags
             )
+        
+         
         except Exception as e:
             raise Exception(f"Failed to create ALB-listener: {str(e)}")
-    
-    def create_listener_rules(self):
-        try:
-            # Elasticsearch Rule
-            elasticsearch_rule = aws.lb.ListenerRule(
-                f"{self.project_name}-elasticsearch-rule",
-                listener_arn=self.listener.arn,
-                 conditions=[{
-                    "path_pattern":{
-                        "values":["/elasticsearch*"],
-                    }
-                }],
-                actions=[{
-                    "type": "forward",
-                    "target_group_arn": self.elasticsearch_tg.arn
-                }],
-                priority=1  # Ensure unique priority
-            )
 
-            # Logstash Rule
-            logstash_rule = aws.lb.ListenerRule(
-                f"{self.project_name}-logstash-rule",
+
+    def create_listener_rule(self, target_group, name=str, priority=int):
+        try:
+            # Add a new listener rule for path-based routing
+            return aws.lb.ListenerRule(
+                f"{self.project_name}-{name}-rule",
                 listener_arn=self.listener.arn,
                 conditions=[{
-                    "path_pattern":{
-                        "values":["/logstash*"],
-                    }
+                    "path_pattern": {
+                    "values": [f"/{name}*"],
+                     },
                 }],
-
                 actions=[{
                     "type": "forward",
-                    "target_group_arn": self.logstash_tg.arn
+                    "forward": {
+                        "targetGroups": [{
+                            "arn": target_group.arn,
+                            "weight": 1
+                        }]
+                    }
                 }],
-                priority=2
+                priority=priority,  
             )
-
-
-            return [elasticsearch_rule, logstash_rule]
         except Exception as e:
-            raise Exception(f"Failed to create ALB-listener-rules: {str(e)}")
+            raise Exception(f"Failed to create ALB listener rule: {str(e)}")
+  
+
+        
+    
    
