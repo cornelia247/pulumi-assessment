@@ -1,0 +1,13 @@
+config:
+  aws:region: us-east-1
+  # ECS Configuration
+  ecs:desired_count: "2"
+  ecs:cpu: "256"
+  ecs:memory: "512"
+  # Elasticsearch Configuration
+  numeris-book:domain: example.com
+  numeris-book:environment: prod
+  numeris-book:project: numeris
+  numeris-book:rds_allocated_storage: "20"
+  numeris-book:rds_instance_class: db.t3.micro
+encryptionsalt: v1:LM1+oypx35U=:v1:IfADTGFXdodN0ENk:3wqlz24BrCFTXEdweSbD5wfuyHvMTg==

@@ -1,0 +1,7 @@
+name: numeris-book
+runtime: python
+description: Production-ready AWS infrastructure using Pulumi
+backend:
+  url: s3://numeris-book-pulumi-state
+
+  

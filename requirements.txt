@@ -1,0 +1,6 @@
+pulumi
+pulumi-aws
+boto3
+typing
+pulumi_random
+json
