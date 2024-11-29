@@ -12,10 +12,14 @@ permissions:
   id-token: write   
   contents: read    
 
+env:
+  PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
+  PULUMI_BACKEND_URL: ${{ secrets.PULUMI_BACKEND_URL }}
+
 jobs:
   pulumi-infrastructure:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
 
@@ -43,16 +47,36 @@ jobs:
         with:
           command: preview
           stack-name: prod  
-        env:
-          PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
-          PULUMI_BACKEND_URL: ${{ secrets.PULUMI_BACKEND_URL }}
+
+  pulumi-up:
+    runs-on: ubuntu-latest
+    needs: pulumi-infrastructure
+    environment: production # Environment with manual approval rules
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Pulumi CLI
+        uses: pulumi/action-install-pulumi-cli@v2
 
       - name: Pulumi Up
-        if: github.ref == 'refs/heads/main'  
         uses: pulumi/actions@v5
         with:
           command: up
           stack-name: prod
-        env:
-          PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
-          PULUMI_BACKEND_URL: ${{ secrets.PULUMI_BACKEND_URL }}
+          options: --yes
+
+  pulumi-destroy:
+    runs-on: ubuntu-latest
+    environment: production # Environment with manual approval rules
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Pulumi CLI
+        uses: pulumi/action-install-pulumi-cli@v2
+
+      - name: Pulumi Destroy
+        uses: pulumi/actions@v5
+        with:
+          command: destroy
+          stack-name: prod
+          options: --yes
