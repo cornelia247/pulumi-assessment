@@ -56,15 +56,14 @@ This project provisions and manages a secure and scalable infrastructure on AWS 
 
 ---
 
-## **Project Structure**
+## **Project Structure Sample**
 ```plaintext
 ├── Pulumi.yaml         # Pulumi project metadata
-├── Pulumi.dev.yaml     # Development stack configuration
 ├── Pulumi.prod.yaml    # Production stack configuration
 ├── requirements.txt    # Python dependencies
 ├── __main__.py         # Main Pulumi script
-├── stacks/
-│   ├── network.py      # Networking resources
+├── infrastructure/
+│   ├── networking.py      # Networking resources
 │   ├── compute.py      # ECS Fargate tasks
 │   └── data.py         # RDS and Secrets Manager
 ```
